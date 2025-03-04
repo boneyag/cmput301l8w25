@@ -43,6 +43,6 @@ dependencies {
     androidTestImplementation(libs.espresso.core)
     testImplementation(libs.mockito.core)
     testImplementation(libs.mockito.inline)
-    implementation(libs.firebase.bom)
+    implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.firestore)
 }

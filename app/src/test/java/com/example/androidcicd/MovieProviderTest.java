@@ -59,4 +59,38 @@ public class MovieProviderTest {
     */
         verify(mockDocRef).set(movie);
     }
+
+    @Test
+    public void testDeleteMovie() {
+        // Create movie and set our id
+        Movie movie = new Movie("Oppenheimer", "Thriller/Historical Drama", 2023);
+        movie.setId("123");
+
+        // Call the delete movie and verify the firebase delete method was called.
+        movieProvider.deleteMovie(movie);
+        verify(mockDocRef).delete();
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void testUpdateMovieShouldThrowErrorForDifferentIds() {
+        Movie movie = new Movie("Oppenheimer", "Thriller/Historical Drama", 2023);
+        // Set our ID to 1
+        movie.setId("1");
+
+        // Make sure the doc ref has a different ID
+        when(mockDocRef.getId()).thenReturn("123");
+
+        // Call update movie, which should throw an error
+        movieProvider.updateMovie(movie, "Another Title", "Another Genre", 2026);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void testUpdateMovieShouldThrowErrorForEmptyName() {
+        Movie movie = new Movie("Oppenheimer", "Thriller/Historical Drama", 2023);
+        movie.setId("123");
+        when(mockDocRef.getId()).thenReturn("123");
+
+        // Call update movie, which should throw an error due to having an empty name
+        movieProvider.updateMovie(movie, "", "Another Genre", 2026);
+    }
 }
