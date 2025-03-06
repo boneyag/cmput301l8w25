@@ -58,6 +58,12 @@ jobs:
     - name: Install Android SDK
       uses: android-actions/setup-android@v3
 
+    - name: Update cmdline-tools
+      run: echo "y" | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "cmdline-tools;latest"
+
+    - name: Accept licenses
+      run: yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses || true
+  
     - name: Update SDK Manager
       run: $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --update
 
