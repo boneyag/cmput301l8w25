@@ -1,5 +1,6 @@
 package com.example.androidcicd;
 
+import static androidx.test.espresso.Espresso.onData;
 import static androidx.test.espresso.Espresso.onView;
 import static androidx.test.espresso.action.ViewActions.click;
 import static androidx.test.espresso.action.ViewActions.longClick;
@@ -10,8 +11,15 @@ import static androidx.test.espresso.matcher.ViewMatchers.isDisplayed;
 import static androidx.test.espresso.matcher.ViewMatchers.withId;
 import static androidx.test.espresso.matcher.ViewMatchers.withText;
 
-import android.util.Log;
+import static org.hamcrest.CoreMatchers.instanceOf;
+import static org.hamcrest.CoreMatchers.is;
 
+import android.util.Log;
+import android.view.View;
+import android.widget.TextView;
+
+import androidx.test.espresso.UiController;
+import androidx.test.espresso.ViewAction;
 import androidx.test.espresso.ViewInteraction;
 import androidx.test.espresso.action.ViewActions;
 import androidx.test.ext.junit.rules.ActivityScenarioRule;
@@ -23,6 +31,7 @@ import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FirebaseFirestore;
 
+import org.hamcrest.Matcher;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -34,6 +43,8 @@ import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.Objects;
 
 @RunWith(AndroidJUnit4.class)
@@ -102,7 +113,8 @@ public class MainActivityTest {
     }
 
     @Test
-    public void appShouldDisplayExistingMoviesOnLaunch() {
+    public void appShouldDisplayExistingMoviesOnLaunch() throws InterruptedException {
+        Thread.sleep(3000);
         // Check that the initial data is loaded
         onView(withText("Oppenheimer")).check(matches(isDisplayed()));
         onView(withText("Barbie")).check(matches(isDisplayed()));
@@ -121,7 +133,7 @@ public class MainActivityTest {
         Thread.sleep(2000);
         ViewInteraction view = onView(withText("Oppenheimer"));
         view.perform(longClick());
-        onView(withId(android.R.id.button1)).perform(click());
+        onView(withText("Delete")).perform(click());
 
         view.check(doesNotExist());
     }
@@ -129,20 +141,23 @@ public class MainActivityTest {
     @After
     public void tearDown() {
         String projectId = "cmput301l8w25";
+        String database = "(default)";
+        String encodedDatabase = URLEncoder.encode(database, StandardCharsets.UTF_8);
         URL url = null;
         try {
-            url = new URL("http://10.0.2.2:8080/emulator/v1/projects/" + projectId + "/databases/(default)/documents");
+            url = new URL("http://10.0.2.2:8080/emulator/v1/projects/" + projectId + "/databases/" + encodedDatabase + "/documents");
         } catch (MalformedURLException exception) {
-            Log.e("URL Error", Objects.requireNonNull(exception.getMessage()));
+            Log.e("URLError", Objects.requireNonNull(exception.getMessage()));
         }
         HttpURLConnection urlConnection = null;
         try {
             urlConnection = (HttpURLConnection) url.openConnection();
             urlConnection.setRequestMethod("DELETE");
+            urlConnection.setRequestProperty("Content-Type", "application/json");
             int response = urlConnection.getResponseCode();
-            Log.i("Response Code", "Response Code: " + response);
+            Log.i("ResponseCode", "Response Code: " + response + "(" + urlConnection.getResponseMessage() + ")");
         } catch (IOException exception) {
-            Log.e("IO Error", Objects.requireNonNull(exception.getMessage()));
+            Log.e("IOError", Objects.requireNonNull(exception.getMessage()));
         } finally {
             if (urlConnection != null) {
                 urlConnection.disconnect();
