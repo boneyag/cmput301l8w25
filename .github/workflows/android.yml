@@ -58,6 +58,15 @@ jobs:
     - name: Install Android SDK
       uses: android-actions/setup-android@v3
 
+    - name: Update SDK Manager
+      run: $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --update
+
+    - name: Update platform tools
+      run: echo "no" | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "platform-tools"
+    
+    - name: Update emulator
+      run: echo "no" | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "emulator"
+
     - name: Install system images
       run: |
         echo "y" | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "system-images;android-29;google_apis;x86_64"
@@ -65,6 +74,9 @@ jobs:
         echo "no" | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "platform-tools"
         echo "no" | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "build-tools;29.0.2"
 
+    - name: Start ADB Server
+      run: $ANDROID_HOME/platform-tools/adb start-server
+  
     - name: Setup node
       uses: actions/setup-node@v4
       with:
@@ -77,7 +89,10 @@ jobs:
       run: firebase emulators:start --only firestore &
       env:
           FIRESTORE_EMULATOR_HOST: localhost:8080
-
+          
+    - name: Start ADB Server
+      run: $ANDROID_HOME/platform-tools/adb start-server
+      
     - name: run tests
       uses: reactivecircus/android-emulator-runner@v2
       with:
